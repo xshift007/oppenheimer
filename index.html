@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vida hermosa de casados - Juego 2D</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: #f6f5ff;
+        color: #2c1d3b;
+      }
+
+      header {
+        padding: 24px clamp(16px, 4vw, 48px) 8px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+      }
+
+      p {
+        margin: 0 auto;
+        max-width: 720px;
+        line-height: 1.6;
+      }
+
+      main {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+        padding: 16px clamp(16px, 4vw, 48px) 48px;
+      }
+
+      canvas {
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(44, 29, 59, 0.2);
+        background: linear-gradient(180deg, #e0f7ff 0%, #fff6fb 65%, #ffe9d6 100%);
+        max-width: 100%;
+        height: auto;
+      }
+
+      .panel {
+        width: min(820px, 100%);
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 24px rgba(44, 29, 59, 0.1);
+      }
+
+      .panel h2 {
+        margin: 0 0 8px;
+        font-size: 1.2rem;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        font-weight: 600;
+      }
+
+      .badge {
+        background: #efe8ff;
+        padding: 6px 12px;
+        border-radius: 999px;
+      }
+
+      footer {
+        text-align: center;
+        padding: 12px 24px 32px;
+        color: #5c4b6b;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>La vida hermosa de Nicolás y Yulissa</h1>
+      <p>
+        Un juego 2D donde Nicolás (ingeniero informático) y Yulissa (científica bioquímica) cuidan a sus hijos,
+        recolectan corazones y celebran cada momento en familia. Usa las flechas o WASD para moverte y
+        acompáñalos en su aventura diaria.
+      </p>
+    </header>
+
+    <main>
+      <canvas id="game" width="820" height="480" aria-label="Juego 2D de la familia"></canvas>
+      <section class="panel" aria-live="polite">
+        <h2>Estado de la familia</h2>
+        <div class="stats">
+          <span class="badge" id="score">Corazones: 0</span>
+          <span class="badge" id="energy">Energía: 100%</span>
+          <span class="badge" id="moment">Momento: Amanecer</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>Consejo: Reúne corazones para desbloquear mensajes de cariño.</footer>
+
+    <script>
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const scoreLabel = document.getElementById("score");
+      const energyLabel = document.getElementById("energy");
+      const momentLabel = document.getElementById("moment");
+
+      const world = {
+        width: canvas.width,
+        height: canvas.height,
+        hearts: [],
+        messages: [
+          "Trabajo en equipo",
+          "Risas en casa",
+          "Experimentos felices",
+          "Código con amor",
+          "Aventura en familia",
+        ],
+      };
+
+      const family = {
+        x: world.width / 2,
+        y: world.height / 2,
+        size: 26,
+        speed: 2.6,
+        score: 0,
+        energy: 100,
+        message: "Amanecer",
+      };
+
+      const keys = new Set();
+
+      function spawnHearts(total = 6) {
+        world.hearts = Array.from({ length: total }, () => ({
+          x: 40 + Math.random() * (world.width - 80),
+          y: 40 + Math.random() * (world.height - 120),
+          size: 14 + Math.random() * 8,
+          pulse: Math.random() * Math.PI * 2,
+        }));
+      }
+
+      function drawCharacter(x, y, label, color, accessory) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, family.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(-8, -6, 4, 0, Math.PI * 2);
+        ctx.arc(8, -6, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#2c1d3b";
+        ctx.beginPath();
+        ctx.arc(-8, -6, 2, 0, Math.PI * 2);
+        ctx.arc(8, -6, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#2c1d3b";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 6, 8, 0, Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = "#2c1d3b";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, 0, family.size + 16);
+        if (accessory === "laptop") {
+          ctx.fillStyle = "#4f3b66";
+          ctx.fillRect(-18, family.size + 24, 36, 14);
+        }
+        if (accessory === "flask") {
+          ctx.strokeStyle = "#4f3b66";
+          ctx.beginPath();
+          ctx.moveTo(0, family.size + 22);
+          ctx.lineTo(-6, family.size + 40);
+          ctx.lineTo(6, family.size + 40);
+          ctx.closePath();
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawChild(x, y, label, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, family.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(-5, -4, 3, 0, Math.PI * 2);
+        ctx.arc(5, -4, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#2c1d3b";
+        ctx.beginPath();
+        ctx.arc(-5, -4, 1.5, 0, Math.PI * 2);
+        ctx.arc(5, -4, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#2c1d3b";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 4, 6, 0, Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = "#2c1d3b";
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, 0, family.size * 0.7 + 14);
+        ctx.restore();
+      }
+
+      function drawHeart(heart) {
+        heart.pulse += 0.04;
+        const scale = 1 + Math.sin(heart.pulse) * 0.1;
+        ctx.save();
+        ctx.translate(heart.x, heart.y);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = "#ff6b8a";
+        ctx.beginPath();
+        ctx.moveTo(0, 6);
+        ctx.bezierCurveTo(-12, -4, -18, 10, 0, 22);
+        ctx.bezierCurveTo(18, 10, 12, -4, 0, 6);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawScene() {
+        ctx.clearRect(0, 0, world.width, world.height);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.fillRect(40, 40, world.width - 80, world.height - 120);
+
+        world.hearts.forEach(drawHeart);
+
+        drawCharacter(family.x - 60, family.y, "Nicolás", "#7ecbff", "laptop");
+        drawCharacter(family.x + 60, family.y, "Yulissa", "#ffc6e2", "flask");
+        drawChild(family.x - 20, family.y + 90, "Hijo/a 1", "#ffe66d");
+        drawChild(family.x + 20, family.y + 90, "Hijo/a 2", "#b5f5a5");
+      }
+
+      function updateFamily() {
+        let dx = 0;
+        let dy = 0;
+        if (keys.has("ArrowUp") || keys.has("w")) dy -= 1;
+        if (keys.has("ArrowDown") || keys.has("s")) dy += 1;
+        if (keys.has("ArrowLeft") || keys.has("a")) dx -= 1;
+        if (keys.has("ArrowRight") || keys.has("d")) dx += 1;
+
+        if (dx || dy) {
+          const length = Math.hypot(dx, dy) || 1;
+          family.x += (dx / length) * family.speed;
+          family.y += (dy / length) * family.speed;
+          family.energy = Math.max(60, family.energy - 0.02);
+        } else {
+          family.energy = Math.min(100, family.energy + 0.05);
+        }
+
+        family.x = Math.max(120, Math.min(world.width - 120, family.x));
+        family.y = Math.max(120, Math.min(world.height - 160, family.y));
+      }
+
+      function checkHearts() {
+        world.hearts = world.hearts.filter((heart) => {
+          const distance = Math.hypot(family.x - heart.x, family.y - heart.y);
+          if (distance < 40) {
+            family.score += 1;
+            family.message = world.messages[family.score % world.messages.length];
+            scoreLabel.textContent = `Corazones: ${family.score}`;
+            momentLabel.textContent = `Momento: ${family.message}`;
+            return false;
+          }
+          return true;
+        });
+
+        if (world.hearts.length === 0) {
+          spawnHearts(6);
+        }
+      }
+
+      function updateUI() {
+        energyLabel.textContent = `Energía: ${Math.round(family.energy)}%`;
+      }
+
+      function loop() {
+        updateFamily();
+        checkHearts();
+        drawScene();
+        updateUI();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener("keydown", (event) => {
+        keys.add(event.key);
+      });
+
+      window.addEventListener("keyup", (event) => {
+        keys.delete(event.key);
+      });
+
+      spawnHearts();
+      loop();
+    </script>
+  </body>
+</html>
