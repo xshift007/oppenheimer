@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vida hermosa de Nicolás y Yulissa - Sim 2D</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: #0b0f1f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at top, #1c2544 0%, #0b0f1f 55%, #070a16 100%);
+        color: #f5f7ff;
+      }
+
+      header {
+        padding: 28px clamp(16px, 4vw, 48px) 16px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 3.2vw, 2.8rem);
+      }
+
+      p {
+        margin: 0 auto;
+        max-width: 780px;
+        line-height: 1.6;
+        color: #c8d0ff;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+        padding: 0 clamp(16px, 4vw, 48px) 48px;
+        justify-items: center;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 18px;
+        width: min(1200px, 100%);
+      }
+
+      canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(3, 6, 18, 0.5);
+        background: #0f152c;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .panel {
+        background: rgba(17, 23, 43, 0.92);
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 18px 30px rgba(6, 8, 20, 0.4);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+      }
+
+      .stats {
+        display: grid;
+        gap: 10px;
+      }
+
+      .stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+      }
+
+      .bar {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-top: 6px;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .list {
+        display: grid;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #c8d0ff;
+      }
+
+      .task {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .task strong {
+        color: #fff;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 12px 24px 32px;
+        color: #9fa7d5;
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Vida hermosa: Nicolás &amp; Yulissa - Sim 2D</h1>
+      <p>
+        Un juego completo estilo Sims en 2D. Administra la casa, las necesidades y las rutinas de Nicolás (ingeniero
+        informático) y Yulissa (científica bioquímica) junto a sus hijos. Explora habitaciones, realiza tareas diarias
+        y desbloquea momentos especiales.
+      </p>
+    </header>
+
+    <main>
+      <section class="layout">
+        <canvas id="game" width="960" height="600" aria-label="Simulador 2D de la familia"></canvas>
+        <aside class="panel" aria-live="polite">
+          <h2>Control familiar</h2>
+          <div class="stats">
+            <div>
+              <div class="stat">
+                <span>Felicidad</span>
+                <span id="happinessValue">82%</span>
+              </div>
+              <div class="bar"><span id="happinessBar" style="width: 82%; background: #8ef9c3;"></span></div>
+            </div>
+            <div>
+              <div class="stat">
+                <span>Energía</span>
+                <span id="energyValue">76%</span>
+              </div>
+              <div class="bar"><span id="energyBar" style="width: 76%; background: #8bb6ff;"></span></div>
+            </div>
+            <div>
+              <div class="stat">
+                <span>Inspiración</span>
+                <span id="inspirationValue">68%</span>
+              </div>
+              <div class="bar"><span id="inspirationBar" style="width: 68%; background: #ffb66e;"></span></div>
+            </div>
+            <div>
+              <div class="stat">
+                <span>Tiempo</span>
+                <span id="timeValue">07:30 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 18px;">Agenda del día</h2>
+          <div class="list" id="taskList"></div>
+
+          <h2 style="margin-top: 18px;">Acciones</h2>
+          <div class="list">
+            <div class="task">Mover con WASD o flechas</div>
+            <div class="task">Interactúa con muebles al acercarte</div>
+            <div class="task">Completa tareas para desbloquear mensajes</div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <div class="footer">Consejo: Alterna entre personajes con la tecla <strong>Tab</strong>.</div>
+
+    <script>
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      const happinessValue = document.getElementById("happinessValue");
+      const energyValue = document.getElementById("energyValue");
+      const inspirationValue = document.getElementById("inspirationValue");
+      const timeValue = document.getElementById("timeValue");
+      const happinessBar = document.getElementById("happinessBar");
+      const energyBar = document.getElementById("energyBar");
+      const inspirationBar = document.getElementById("inspirationBar");
+      const taskList = document.getElementById("taskList");
+
+      const world = {
+        width: canvas.width,
+        height: canvas.height,
+        time: 7.5,
+        daySpeed: 0.0035,
+        rooms: [
+          { name: "Sala", color: "#22315e", x: 40, y: 40, width: 360, height: 220 },
+          { name: "Cocina", color: "#1f3d3d", x: 420, y: 40, width: 500, height: 160 },
+          { name: "Laboratorio", color: "#3b244c", x: 420, y: 220, width: 500, height: 200 },
+          { name: "Dormitorio", color: "#2f2a52", x: 40, y: 280, width: 360, height: 260 },
+          { name: "Patio", color: "#1b3a2b", x: 420, y: 440, width: 500, height: 120 },
+        ],
+        objects: [
+          { name: "Sofá familiar", room: "Sala", x: 120, y: 120, width: 120, height: 50, action: "Conversar" },
+          { name: "Mesa creativa", room: "Sala", x: 260, y: 170, width: 80, height: 40, action: "Juego en familia" },
+          { name: "Cocina saludable", room: "Cocina", x: 470, y: 80, width: 120, height: 40, action: "Preparar desayuno" },
+          { name: "Isla de snacks", room: "Cocina", x: 640, y: 120, width: 90, height: 40, action: "Compartir" },
+          { name: "Mesa de laboratorio", room: "Laboratorio", x: 470, y: 260, width: 140, height: 60, action: "Investigar" },
+          { name: "Estación de código", room: "Laboratorio", x: 640, y: 300, width: 120, height: 60, action: "Programar" },
+          { name: "Cama principal", room: "Dormitorio", x: 120, y: 340, width: 140, height: 70, action: "Descansar" },
+          { name: "Rincón de lectura", room: "Dormitorio", x: 260, y: 420, width: 90, height: 50, action: "Leer cuentos" },
+          { name: "Juegos al aire libre", room: "Patio", x: 500, y: 470, width: 160, height: 60, action: "Jugar" },
+        ],
+        tasks: [
+          { id: 1, title: "Preparar desayuno", detail: "Cocina saludable para todos.", done: false, reward: { happiness: 6, energy: 4 } },
+          { id: 2, title: "Revisar proyecto", detail: "Nicolás organiza código del día.", done: false, reward: { inspiration: 6 } },
+          { id: 3, title: "Experimento divertido", detail: "Yulissa y los niños prueban ciencia.", done: false, reward: { inspiration: 4, happiness: 6 } },
+          { id: 4, title: "Tarde en familia", detail: "Momento de juego en el patio.", done: false, reward: { happiness: 8 } },
+        ],
+      };
+
+      const characters = [
+        {
+          id: "nicolas",
+          name: "Nicolás",
+          role: "Ingeniero informático",
+          color: "#7ecbff",
+          x: 220,
+          y: 160,
+          size: 18,
+          mood: "Inspirado",
+          needs: { happiness: 82, energy: 76, inspiration: 68 },
+        },
+        {
+          id: "yulissa",
+          name: "Yulissa",
+          role: "Científica bioquímica",
+          color: "#ffc6e2",
+          x: 560,
+          y: 260,
+          size: 18,
+          mood: "Serena",
+          needs: { happiness: 84, energy: 72, inspiration: 74 },
+        },
+        {
+          id: "child1",
+          name: "Alma",
+          role: "Hija curiosa",
+          color: "#ffe66d",
+          x: 260,
+          y: 420,
+          size: 14,
+          mood: "Juguetona",
+          needs: { happiness: 90, energy: 88, inspiration: 65 },
+        },
+        {
+          id: "child2",
+          name: "Gael",
+          role: "Hijo creativo",
+          color: "#b5f5a5",
+          x: 600,
+          y: 500,
+          size: 14,
+          mood: "Activo",
+          needs: { happiness: 88, energy: 83, inspiration: 70 },
+        },
+      ];
+
+      const keys = new Set();
+      let activeIndex = 0;
+      let message = "Bienvenidos a casa";
+
+      function drawRoom(room) {
+        ctx.fillStyle = room.color;
+        ctx.fillRect(room.x, room.y, room.width, room.height);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(room.x, room.y, room.width, room.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(room.name, room.x + 12, room.y + 22);
+      }
+
+      function drawObject(object) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+        ctx.fillRect(object.x, object.y, object.width, object.height);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.strokeRect(object.x, object.y, object.width, object.height);
+      }
+
+      function drawCharacter(character, isActive) {
+        ctx.save();
+        ctx.translate(character.x, character.y);
+        ctx.fillStyle = character.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, character.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(-6, -4, 3, 0, Math.PI * 2);
+        ctx.arc(6, -4, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#1c1430";
+        ctx.beginPath();
+        ctx.arc(-6, -4, 1.5, 0, Math.PI * 2);
+        ctx.arc(6, -4, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#1c1430";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 5, 6, 0, Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = "#f5f7ff";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(character.name, 0, character.size + 16);
+        if (isActive) {
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, character.size + 6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawHUD() {
+        ctx.fillStyle = "rgba(8, 12, 26, 0.75)";
+        ctx.fillRect(20, 520, 920, 60);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.strokeRect(20, 520, 920, 60);
+        ctx.fillStyle = "#f5f7ff";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(`Activo: ${characters[activeIndex].name} (${characters[activeIndex].role})`, 32, 548);
+        ctx.fillStyle = "#9fa7d5";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(message, 32, 570);
+      }
+
+      function updateTime() {
+        world.time += world.daySpeed;
+        if (world.time >= 24) world.time = 0;
+        const hours = Math.floor(world.time);
+        const minutes = Math.floor((world.time - hours) * 60);
+        const period = hours >= 12 ? "PM" : "AM";
+        const displayHour = ((hours + 11) % 12) + 1;
+        timeValue.textContent = `${displayHour.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")} ${period}`;
+      }
+
+      function updateNeeds(delta = { happiness: 0, energy: 0, inspiration: 0 }) {
+        const active = characters[activeIndex];
+        Object.keys(active.needs).forEach((need) => {
+          active.needs[need] = Math.min(100, Math.max(0, active.needs[need] + (delta[need] || 0)));
+        });
+        happinessValue.textContent = `${Math.round(active.needs.happiness)}%`;
+        energyValue.textContent = `${Math.round(active.needs.energy)}%`;
+        inspirationValue.textContent = `${Math.round(active.needs.inspiration)}%`;
+        happinessBar.style.width = `${active.needs.happiness}%`;
+        energyBar.style.width = `${active.needs.energy}%`;
+        inspirationBar.style.width = `${active.needs.inspiration}%`;
+      }
+
+      function renderTasks() {
+        taskList.innerHTML = "";
+        world.tasks.forEach((task) => {
+          const item = document.createElement("div");
+          item.className = "task";
+          item.innerHTML = `<strong>${task.title}</strong>${task.detail} ${task.done ? "✅" : ""}`;
+          taskList.appendChild(item);
+        });
+      }
+
+      function getNearbyObject() {
+        const active = characters[activeIndex];
+        return world.objects.find((object) => {
+          const dx = active.x - (object.x + object.width / 2);
+          const dy = active.y - (object.y + object.height / 2);
+          return Math.hypot(dx, dy) < 60;
+        });
+      }
+
+      function completeTask(action) {
+        const task = world.tasks.find((item) => !item.done && item.title.toLowerCase().includes(action.toLowerCase()));
+        if (!task) return false;
+        task.done = true;
+        updateNeeds(task.reward);
+        message = `Completaste: ${task.title}. ¡Familia feliz!`;
+        renderTasks();
+        return true;
+      }
+
+      function interact() {
+        const nearby = getNearbyObject();
+        if (!nearby) {
+          message = "Acércate a un mueble para interactuar.";
+          return;
+        }
+        const action = nearby.action;
+        const success = completeTask(action);
+        if (success) return;
+        if (action === "Descansar") {
+          updateNeeds({ energy: 6, happiness: 2 });
+          message = "Descansaron y recuperaron energía.";
+        } else if (action === "Programar") {
+          updateNeeds({ inspiration: 4 });
+          message = "Nicolás avanza con su proyecto.";
+        } else if (action === "Investigar") {
+          updateNeeds({ inspiration: 4 });
+          message = "Yulissa comparte ciencia con los niños.";
+        } else if (action === "Conversar") {
+          updateNeeds({ happiness: 4 });
+          message = "Conversación cálida en la sala.";
+        } else if (action === "Jugar") {
+          updateNeeds({ happiness: 6, energy: -2 });
+          message = "Todos juegan en el patio.";
+        } else {
+          updateNeeds({ happiness: 2 });
+          message = "Momento especial en familia.";
+        }
+      }
+
+      function updateMovement() {
+        const active = characters[activeIndex];
+        const speed = 2.4;
+        let dx = 0;
+        let dy = 0;
+        if (keys.has("ArrowUp") || keys.has("w")) dy -= 1;
+        if (keys.has("ArrowDown") || keys.has("s")) dy += 1;
+        if (keys.has("ArrowLeft") || keys.has("a")) dx -= 1;
+        if (keys.has("ArrowRight") || keys.has("d")) dx += 1;
+        if (dx || dy) {
+          const length = Math.hypot(dx, dy) || 1;
+          active.x += (dx / length) * speed;
+          active.y += (dy / length) * speed;
+          updateNeeds({ energy: -0.05 });
+        }
+        active.x = Math.max(60, Math.min(world.width - 60, active.x));
+        active.y = Math.max(60, Math.min(world.height - 80, active.y));
+      }
+
+      function drawScene() {
+        ctx.clearRect(0, 0, world.width, world.height);
+        ctx.fillStyle = "#111a36";
+        ctx.fillRect(0, 0, world.width, world.height);
+
+        world.rooms.forEach(drawRoom);
+        world.objects.forEach(drawObject);
+
+        characters.forEach((character, index) => drawCharacter(character, index === activeIndex));
+        drawHUD();
+      }
+
+      function loop() {
+        updateMovement();
+        updateTime();
+        drawScene();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          activeIndex = (activeIndex + 1) % characters.length;
+          updateNeeds();
+          message = `Controlando a ${characters[activeIndex].name}.`;
+          return;
+        }
+        if (event.key === " ") {
+          event.preventDefault();
+          interact();
+          return;
+        }
+        keys.add(event.key);
+      });
+
+      window.addEventListener("keyup", (event) => {
+        keys.delete(event.key);
+      });
+
+      renderTasks();
+      updateNeeds();
+      loop();
+    </script>
+  </body>
+</html>
